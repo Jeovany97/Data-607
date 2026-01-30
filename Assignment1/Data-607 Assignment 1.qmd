@@ -1,0 +1,22 @@
+---
+title: "Data 607- Assignment 1"
+author: "Jeovany"
+format: html
+Date: "01-29-2026"
+---
+
+## Overview
+
+This creates dataframe from the the kaggle dataset "Datasets of WEBTOON ORIGINALS," and remove unnecessary variables. The dataset used is available in this repository that
+
+```{r}
+url <- "https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Assignment1/webtoon_originals_en.csv"
+webtoon_unedited <- read_csv(url)
+webtoon_clean <- webtoon_unedited %>%
+  select(-title_id, -authors, -rating, -synopsis)
+
+```
+
+```{r}
+head(webtoon_clean)
+```
