@@ -1,0 +1,14 @@
+---
+title: "2A SQL and R: Requirements"
+format: html
+server: shiny
+---
+
+# Approach
+
+I will start by choosing six popular movie and asking 5 people to rate the movies on a 1-5 scales. I will store the data in a postgresql database. I plan to use a normalized relational schema with three tables:
+* users(user_id, name)
+* Movies(movie_id, title)
+* ratings(user_id, movie_id, rating)
+
+I will then use R to load the data into a dataframe which will allow me to handle missing values.
