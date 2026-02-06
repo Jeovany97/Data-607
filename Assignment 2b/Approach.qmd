@@ -1,0 +1,9 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Approach
+
+This assignment is focused on evaluating the performance of a pre-trained binary classification model. I will begin my analysis by looking of the distribution of the class variable sex. I'll calculate the null error rate by identifying the majority and measure the error rate of always predicting that class. Next the predict probability will be converted into class labels using different thresholds and a confusion matrix will be created by comparing the label to the true class values.
