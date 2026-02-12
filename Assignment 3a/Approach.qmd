@@ -1,0 +1,22 @@
+---
+title: "Assignment 3a"
+format: html
+server: shiny
+---
+
+## Approach
+
+### Step 1
+
+I will be using the synthetic dataset shared by Desiree Thomas since it's better then my old dataset. I'll have to double check to make sure that any row that have an empty rating is removed and calculate the global mean.
+
+### Step 2
+
+For each movie I'd will calculate the movie bias and for each user I will calculate the user bias. Once I have those I can use the prediction formula
+
+rui = μ − bu − bi
+
+- rui = The predicted rating.
+- μ   = The Global Mean.
+- bu  = The specific User's Bias.
+- bi  = The specific Movie's Bias.
