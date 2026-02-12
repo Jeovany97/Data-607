@@ -1,0 +1,9 @@
+---
+title: "Assignment 3b"
+format: html
+server: shiny
+---
+
+## Approach
+
+I will create a synthetic dataset with three columns Date, Item, and Price. I'll sort the items by Date iin ascending order. We'll use the window function to group items by year to date average and Six-Day Moving Average without ruining the original dataset. 
