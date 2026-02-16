@@ -1,0 +1,33 @@
+---
+title: "Assignment 3b"
+format: html
+execute:
+  echo: true
+---
+
+## Approach
+
+I will create a synthetic dataset with three columns Date, Item, and Price. I'll sort the items by Date in ascending order. We'll use the window function to group items by year to date average and Six-Day Moving Average without ruining the original dataset. 
+
+## Code base
+
+```{r}
+library(dplyr)
+library(zoo)
+
+synthetic_dataset <- read.csv("synthetic_dataset.csv")
+
+processed_data <- synthetic_dataset %>%
+  group_by(item) %>%
+  arrange(date) %>%
+  mutate(
+    ytd_average_sales = cummean(sales),
+    six_day_moving_avg = rollmean(sales, k = 6, fill = NA, align = "right")
+  ) %>%
+  ungroup()
+
+processed_data %>%
+  filter(date >= as.Date("2024-01-06")) %>%
+  head(10)
+```
+
