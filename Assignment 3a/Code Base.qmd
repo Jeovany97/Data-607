@@ -1,0 +1,102 @@
+---
+title: "Assignment 3a"
+format: html
+execute:
+  echo: true
+---
+
+## Approach
+
+### Step 1
+
+I will be using the synthetic dataset shared by Desiree Thomas since it's better then my old dataset. I'll have to double check to make sure that any row that have an empty rating is removed and calculate the global mean.
+
+### Step 2
+
+For each movie I'd will calculate the movie bias and for each user I will calculate the user bias. Once I have those I can use the prediction formula
+
+rui = μ − bu − bi
+
+-   rui = The predicted rating.
+-   μ = The Global Mean.
+-   bu = The specific User's Bias.
+-   bi = The specific Movie's Bias.
+
+## Code Base
+
+### Load the dataset
+
+First I will load the necessary library and the data from the CSV and convert empty box into N/A
+
+```{r}
+library(dplyr)
+df <- read.csv("excel_version_survey_results.csv", stringsAsFactors = FALSE)
+df$rating <- as.numeric(df$rating)
+```
+
+### Calculate Global Mean
+
+Calculate the average of every available rating in the entire dataset. Ignore every N/A value
+
+```{r}
+mu <- mean(df$rating, na.rm = TRUE)
+```
+
+### Calculate User Bias
+
+Calculating the average rating given by users and subtracting that from the global mean
+
+```{r}
+user_biases <- df %>%
+  group_by(account_id) %>%
+  summarise(user_mean = mean(rating, na.rm = TRUE), .groups = 'drop') %>%
+  mutate(bu = user_mean - mu)
+```
+
+### Caculate Movie Bias
+
+Calculating the average rating for each movie and subtracting that from the global mean
+
+```{r}
+movie_biases <- df %>%
+  group_by(movie_title) %>%
+  summarise(movie_mean = mean(rating, na.rm = TRUE), .groups = 'drop') %>%
+  mutate(bi = movie_mean - mu)
+```
+
+### Apply the Global Baseline Estimate formula
+
+We join the calculated bias back into our dataframe and normalize the prediction to make sure they're within 1-5 star range
+
+```{r}
+full_results <- df %>%
+  left_join(user_biases, by = "account_id") %>%
+  left_join(movie_biases, by = "movie_title") %>%
+  mutate(predicted_rating = mu + bu + bi)
+
+# Normalization
+full_results$predicted_rating <- pmin(pmax(full_results$predicted_rating, 1), 5)
+```
+
+### Recommendations
+
+Finding which movie has the highest predicted_rating for each user
+
+```{r}
+recommendations <- full_results %>%
+  filter(is.na(rating)) %>%
+  group_by(account_id, profile_name) %>%
+  arrange(desc(predicted_rating)) %>%
+  slice(1) %>% 
+  ungroup() %>%
+  select(profile_name, movie_title, predicted_rating)
+
+cat("Recommendation System Results\n")
+cat("Global Mean Rating across all users/movies:", round(mu, 2), "\n\n")
+
+cat("Calculated Movie Biases (bi):\n")
+print(movie_biases %>% select(movie_title, bi) %>% arrange(desc(bi)))
+
+cat("\nRecommended Movies for Users who have not seen everything:\n")
+print(recommendations)
+```
