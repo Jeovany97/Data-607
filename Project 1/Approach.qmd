@@ -1,0 +1,8 @@
+---
+title: "Project 1"
+format: html
+---
+
+## Approach
+
+First step will be to clean the data and remove all the noise. Things like the - separator lines and | separator lines. I will then store each player information dataframe and use regular experession to extract the specific values. The most complicated part is going to be a looking up the score of each of their opponent. I plan to map with the key is there number and value is their rating and use that as a fast method to get the values to calculate their score. 
