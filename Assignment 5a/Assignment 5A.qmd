@@ -1,0 +1,100 @@
+---
+title: "Assignment 5A: Airline Delays"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+```
+
+# Reading in the data
+
+```{r}
+data_url <- "https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Assignment%205a/airline_delays.csv"
+
+raw_data <- read_csv(data_url, na = c("", "NA"))
+
+clean_data <- raw_data %>%
+  #Removing empty row & filling in missing Airline names
+  filter(!if_all(everything(),is.na)) %>% 
+  fill(Airline, .direction = "down")
+```
+
+# Tidying the data
+
+```{r}
+tidy_flights <- clean_data %>%
+  pivot_longer(
+    cols = c("Los Angeles", "Phoenix", "San Diego", "San Francisco", "Seattle"),
+    names_to = "City",
+    values_to = "Flights"
+  )
+```
+
+# Calculations
+
+Total number of delayed and on time flights
+
+```{r}
+airline_summary <- tidy_flights %>%
+  group_by(Airline, Status) %>%
+  summarise(total_flights = sum(Flights), .groups = "drop")
+
+kable(airline_summary, caption = "Summary of Airline Delays")
+```
+
+Comparing the number of delayed and on time for each Airline
+
+```{r}
+delay_comparison <- tidy_flights %>%
+  group_by(Airline, Status) %>%
+  summarise(total = sum(Flights), .groups = "drop") %>%
+  pivot_wider(names_from = Status, values_from = total) %>%
+  mutate(
+    total_flights = `on time` + delayed,
+    delay_rate = delayed / total_flights
+  )
+
+kable(delay_comparison, caption = "Comparsion of delays between each airline")
+```
+
+Based on the data given we can see the AM West currently has a much larger operation nearly double the total flights. Despite this AM WEST manages to maintain a slightly lower percentage of delays. Rounding both delay rates to the hundredth that mean a ALASKA customer has 22% increase chance to experience a delay.
+
+# Comparing the the delay and arrive time for each City
+
+```{r}
+city_delay_rates <- tidy_flights %>%
+  group_by(Airline, City, Status) %>%
+  summarise(total = sum(Flights), .groups = "drop") %>%
+  pivot_wider(names_from = Status, values_from = total) %>%
+  mutate(
+    total_flights = `on time` + delayed,
+    delay_rate = delayed / total_flights
+  )
+kable(city_delay_rates, caption = "Comparsion of delays between each city")
+
+```
+
+While previous data suggested AM WEST to be the better airline this city specific data reveals that ALASKA has the lower data. ALASKA beats AM WEST in every city. The reason AM WEST appeared better is because the concentration in phoenix. AM WEST concentrated 73% of all their flights in the city that has lowest average. This volume bias poisoned the previous data.
+
+Creating graph to show difference between city flights
+
+```{r}
+# Creating graph
+ggplot(city_delay_rates, aes(x = City, y = total_flights, fill = Airline)) +
+  geom_col(position = "dodge") +
+  # Titles and labels
+  labs(
+    title = "Flight Volume by City and Airline",
+    subtitle = "Comparing the number of flights for each city",
+    x = "Destination City",
+    y = "Total Number of Flights",
+    fill = "Airline"
+  ) +
+  # Clean up the theme and rotate city names for better readability
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
