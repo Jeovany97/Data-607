@@ -1,0 +1,17 @@
+---
+title: "Project 2"
+format: html
+editor: visual
+---
+
+## Dirty Dataset to practice Data Cleaning
+
+First I plan to clean the data set by dropping the empty column or rows and standardizing the Punctuation of all column names. Then I'll use the pivot_longer in R to make transform from wide to long. 
+
+## Mental Health Data
+First thing I would do address the month column Jan through may. At first glance months like February are just filled with empty values and none of the columns seem
+
+## Tracking Global CO2 Emissions (1990-2023) 
+I will use janitor::clean_names() to ensure the columns are correct. Then I'll use pivot_longer() to transform the data from wide to long
+
+
