@@ -1,0 +1,70 @@
+---
+title: "Project 2"
+format: html
+editor: visual
+---
+
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(janitor)
+
+raw_data <- read.csv("https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Project%202/List%20of%20highest%20grossing%20music%20tours%20by%20Women/my_file%20(1).csv", check.names = FALSE)
+```
+# Tidying the data
+```{r}
+tidy_tours <- raw_data |>
+  clean_names() |>  
+  rename(
+    actual_gross_usd = actual_gross,
+    adjusted_gross_2022_usd = adjusted_gross_in_2022_dollars,
+    years = year_s
+  ) |>
+  mutate(
+    across(c(actual_gross_usd, adjusted_gross_2022_usd, average_gross), 
+           ~as.numeric(str_remove_all(as.character(.x), "[\\$,\\[\\]a-z†‡*]"))),
+    start_year = as.numeric(str_extract(years, "^\\d{4}")),
+    tour_title = str_remove_all(tour_title, "[†‡*]") |> str_trim()
+  ) |>
+  pivot_longer(
+    cols = c(actual_gross_usd, adjusted_gross_2022_usd),
+    names_to = "valuation_type",
+    values_to = "gross_amount"
+  ) |>
+  select(artist, tour_title, start_year, shows, valuation_type, gross_amount, average_gross) |>
+  drop_na(gross_amount)
+
+head(tidy_tours)
+```
+
+# Data analysis. Finding which artist generate 
+
+```{r}
+
+artist_efficiency <- tidy_tours |>
+  # Use unique entries per tour (since each tour appears twice due to pivot_longer)
+  distinct(artist, tour_title, .keep_all = TRUE) |>
+  group_by(artist) |>
+  summarize(
+    number_of_tours = n(),
+    mean_avg_gross_per_show = mean(average_gross, na.rm = TRUE)
+  ) |>
+  arrange(desc(mean_avg_gross_per_show))
+
+# Visualization
+ggplot(artist_efficiency, aes(x = reorder(artist, mean_avg_gross_per_show), y = mean_avg_gross_per_show / 1e6)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Mean Average Gross per Show by Artist",
+    subtitle = "Calculated across all tours in the dataset",
+    x = "Artist",
+    y = "Gross per Show (Millions USD)"
+  ) +
+  theme_minimal()
+```
+
