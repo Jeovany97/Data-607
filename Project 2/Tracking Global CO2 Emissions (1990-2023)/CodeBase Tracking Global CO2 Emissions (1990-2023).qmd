@@ -1,0 +1,74 @@
+---
+title: "CodeBase Tracking Global CO2 Emissions (1990-2023)"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(janitor)
+
+raw_data <- read.csv("https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Project%202/Tracking%20Global%20CO2%20Emissions%20(1990-2023)/wide_format_co2_emission_dataset.csv", check.names = FALSE)
+```
+
+
+# Tidying the data
+The tidying of this dataset was done with Anthropic LLM  Claude
+```{r}
+country_col <- names(raw_data)[1]
+total_col <- names(raw_data)[ncol(raw_data)]
+
+tidy_data <- raw_data %>%
+  # Reshape: Pivot everything EXCEPT the country and the total sum column
+  pivot_longer(
+    cols = -c(all_of(country_col), all_of(total_col)), 
+    names_to = "year", 
+    values_to = "co2_emissions",
+    # FIX: This prevents the 'Can't combine character and double' error
+    values_transform = list(co2_emissions = as.character)
+  ) %>%
+  # Rename for consistency
+  rename(country = !!sym(country_col), total_sum = !!sym(total_col)) %>%
+  # Clean up data types
+  mutate(
+    year = as.numeric(year),
+    country = str_trim(country),
+    # Convert characters back to numbers (the '-' becomes NA automatically)
+    co2_emissions = as.numeric(co2_emissions)
+  ) %>%
+  # Remove the NAs (the old dashes)
+  filter(!is.na(co2_emissions)) %>%
+  arrange(country, year)
+
+# Preview results
+head(tidy_data)
+```
+# analysis of the top 10 CO2 Emissions
+```{r}
+top_10_list <- tidy_data %>%
+  distinct(country, total_sum) %>%
+  slice_max(total_sum, n = 10) %>%
+  pull(country)
+
+plot_data <- tidy_data %>%
+  filter(country %in% top_10_list)
+
+ggplot(plot_data, aes(x = year, y = co2_emissions, color = country)) +
+  geom_line(size = 1) +
+  geom_point(size = 1.5, alpha = 0.5) + # Adds dots to see the specific data points
+  theme_minimal() +
+  labs(
+    title = "CO2 Emission Trends: Top 10 Global Emitters",
+    subtitle = "Data source: Tracking Global CO2 Emissions (1990-2023)",
+    x = "Year",
+    y = "Emissions (Metric Tons per Capita)",
+    color = "Country"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+
