@@ -1,0 +1,80 @@
+---
+title: "Codebase Untidy Mental Health Data"
+format: html
+editor: visual
+---
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(janitor)
+
+raw_data <- read.csv("https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Project%202/Untidy%20Mental%20Health%20Data/untidy_mental_health_data.csv", na.strings = c("", "NA", "n/a", "missing", "NA ", "-", "none", "None"))
+```
+
+## Tidying the data
+
+```{r}
+tidy_data <- raw_data %>%
+  # Rename for consistency
+  rename_all(tolower) %>%
+  rename(participant_id = recordid) %>%
+  
+  # Normalize: Separate City and State
+  separate(city_state, into = c("city", "state"), sep = "[,;] ?", fill = "right") %>%
+  
+  # Normalize: Robust Extraction of PHQ and GAD
+  # We extract all numeric sequences and pick the first for PHQ and the last for GAD
+  mutate(
+    temp_nums = str_extract_all(screeningscores, "\\d+"),
+    phq_score = map_dbl(temp_nums, ~ as.numeric(.x[1])),
+    # GAD is either the second number in ScreeningScores OR found in the Jan column
+    gad_initial = map_dbl(temp_nums, ~ as.numeric(.x[2]))
+  ) %>%
+  
+  # Reshape: Pivot monthly columns to long format
+  pivot_longer(
+    cols = jan:may,
+    names_to = "month",
+    values_to = "monthly_raw"
+  ) %>%
+  
+  # Normalize: Extract GAD scores that were hidden in monthly columns (e.g., "GAD=7=9")
+  mutate(
+    gad_monthly = as.numeric(str_extract(monthly_raw, "(?<=GAD[:=]7[:=])\\d+|(?<=GAD[:=])\\d+")),
+    # If the monthly value is just a number (like 140), it's a different metric
+    other_metric = ifelse(is.na(gad_monthly), as.numeric(monthly_raw), NA)
+  ) %>%
+  
+  # Combine GAD sources into one variable
+  mutate(gad_score = coalesce(gad_initial, gad_monthly)) %>%
+  
+  # Clean up: Remove temporary columns and extract numbers from text strings
+  mutate(
+    sessions = as.numeric(str_extract(sessions, "\\d+")),
+    workhours = as.numeric(str_extract(workhours, "\\d+")),
+    sleep_hours = as.numeric(str_extract(sleep, "[\\d.]+"))
+  ) %>%
+  select(-temp_nums, -gad_initial, -gad_monthly, -screeningscores, -sleep)
+
+# Check the results
+glimpse(tidy_data)
+```
+# Anaysis. Looking at the relationship between Treatment Type and Average PHQ Scores (Depression) to see if certain therapies correlate with lower symptom reporting
+
+```{r}
+analysis_summary <- tidy_data %>%
+  group_by(therapytype) %>%
+  summarise(
+    avg_phq = mean(phq_score, na.rm = TRUE),
+    avg_gad = mean(gad_score, na.rm = TRUE),
+    sample_size = n_distinct(participant_id)
+  ) %>%
+  drop_na(therapytype)
+
+print(analysis_summary)
+```
+
