@@ -1,0 +1,9 @@
+---
+title: "Week 7 Approach"
+format: html
+editor: visual
+---
+
+## Approach
+
+I plan to use three author that have to do with LLMs Natural Language Processing with Transformers, Build a Large Language Model (From Scratch), and Hands-On Large Language Models. I'll make a JSON file and html file containing information for both books than compare them.
