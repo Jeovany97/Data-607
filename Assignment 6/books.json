@@ -1,0 +1,32 @@
+[
+    {
+        "title": "Natural Language Processing with Transformers",
+        "authors": [
+            "Lewis Tunstall",
+            "Leandro von Werra",
+            "Thomas Wolf"
+        ],
+        "publication_year": 2022,
+        "publisher": "O\u2019Reilly Media",
+        "isbn_13": "978-1098136796"
+    },
+    {
+        "title": "Build a Large Language Model (From Scratch)",
+        "authors": [
+            "Sebastian Raschka"
+        ],
+        "publication_year": 2024,
+        "publisher": "Manning Publications",
+        "isbn_13": "978-1633437166"
+    },
+    {
+        "title": "Hands-On Large Language Models",
+        "authors": [
+            "Jay Alammar",
+            "Maarten Grootendorst"
+        ],
+        "publication_year": 2024,
+        "publisher": "O\u2019Reilly Media",
+        "isbn_13": "978-1098179403"
+    }
+]
