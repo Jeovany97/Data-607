@@ -1,0 +1,45 @@
+---
+title: "Week 7 HTML and JSON"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(rvest)
+library(jsonlite)
+library(dplyr)
+```
+
+
+```{r}
+html_url <- "https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Assignment%206/books.html"
+json_url <- "https://raw.githubusercontent.com/Jeovany97/Data-607/refs/heads/main/Assignment%206/books.json"
+```
+
+
+```{r }
+# Load html data into dataframe
+html_raw <- read_html(html_url)
+html_df <- html_raw %>% 
+  html_table() %>%
+  .[[1]]
+
+# LOad Json data into dataframe
+json_df <- fromJSON(json_url)
+
+
+# Normalizing the two dataframes since JSON store them as a string and HTML use tables
+#Converting JSON authors to a comma separated string to match HTML
+json_df_normalized <- json_df %>%
+  mutate(authors = sapply(authors, function(x) paste(x, collapse = ", ")))
+
+# Comparing the two data frames
+are_identical <- all.equal(html_df, json_df_normalized)
+
+if (!isTRUE(are_identical)) {
+  print("Differences found:")
+  print(are_identical)
+}
+
+```
