@@ -1,0 +1,9 @@
+---
+title: "Week 9: Assignment NY Times API Approach"
+format: html
+editor: visual
+---
+
+## Approach
+
+Which genre of books has the highest shelf life on the Best Seller list. The goal is to use the NY time best sell list API and find analyze track how many months books are able to stay on the best seller list. I'll than check which genre those backs are and make a visualization, probably a bar graph but I haven't decided for sure yet, to show which gerne had the most staying power.
