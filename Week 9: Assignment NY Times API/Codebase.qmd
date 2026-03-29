@@ -1,0 +1,35 @@
+---
+title: "Assignment NY Times API Codebase"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+```
+
+```{r}
+api_key <- "kx8nMjwTxiKIKvFo0J0wSo7jaaGIflr55t9MqtfGg6WdcMrV"
+
+base_url <- "https://api.nytimes.com/svc/books/v3/lists/current/hardcover-fiction.json"
+
+response <- GET(url = base_url, query = list("api-key" = api_key))
+
+status_code(response) == 200
+```
+
+```{r}
+content_raw <- content(response, as = "text", encoding = "UTF-8")
+data_json <- fromJSON(content_raw)
+
+books_df <- as_tibble(data_json$results$books)
+
+top_5_fantasy <- books_df %>%
+  select(rank, title, author, description, weeks_on_list, amazon_product_url) %>%
+  head(5)
+
+print(top_5_fantasy)
+```
