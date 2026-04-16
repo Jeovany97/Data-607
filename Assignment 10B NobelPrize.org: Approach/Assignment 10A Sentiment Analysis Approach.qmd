@@ -1,0 +1,9 @@
+---
+title: "Homework 7"
+format: html
+editor: visual
+---
+
+## Approach
+
+First I would try and create a control group by recreating the Jane Austen analysis. I will would also test a contrasting groups, such as science fiction or historical speeches, to test how sentiment varies across different literary genres. The biggest challenge is going be lexical mismatch. For example dark space in Sci Fi or dark in Trillers could potentially skew the results. 
