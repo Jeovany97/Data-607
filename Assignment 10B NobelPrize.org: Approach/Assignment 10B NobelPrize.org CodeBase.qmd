@@ -1,0 +1,94 @@
+---
+title: "Assignment 10B: More JSON"
+format: html
+editor: visual
+---
+
+```{r}
+library(jsonlite)
+library(tidyverse)
+```
+
+```{r}
+laureates_url <- "https://api.nobelprize.org/2.1/laureates?limit=1018"
+laureates_raw <- fromJSON(laureates_url, flatten = TRUE)
+laureates_df <- as_tibble(laureates_raw$laureates)
+
+```
+
+Looking at the column names
+```{r}
+prizes_df <- laureates_df %>%
+  select(id, gender, `birth.year`, nobelPrizes) %>%
+  unnest(nobelPrizes, names_sep = "p_")   # affiliations is now p_affiliations
+
+cat("Columns after first unnest:\n")
+print(names(prizes_df))
+```
+
+Fixing the dataframe to be usable for analysis 
+```{r}
+prizes_df <- laureates_df %>%
+  select(id, gender, `birth.year`, nobelPrizes) %>%
+  unnest(nobelPrizes, names_sep = "_")
+
+affiliations_df <- prizes_df %>%
+  unnest(nobelPrizes_affiliations, names_sep = "_", keep_empty = TRUE)
+```
+
+
+Which university produce the most amount of winners
+```{r}
+q1 <- affiliations_df %>%
+  filter(!is.na(nobelPrizes_affiliations_name.en)) %>%
+  group_by(nobelPrizes_affiliations_name.en) %>%
+  summarise(laureate_count = n_distinct(id), .groups = "drop") %>%
+  arrange(desc(laureate_count))
+
+cat("=== Q1: Top Universities ===\n")
+print(head(q1, 10))
+```
+
+Average age at prize per category
+```{r}
+q2 <- prizes_df %>%
+  filter(!is.na(birth.year), !is.na(nobelPrizes_awardYear)) %>%
+  mutate(
+    age_at_prize = as.integer(nobelPrizes_awardYear) - as.integer(birth.year)
+  ) %>%
+  group_by(nobelPrizes_category.en) %>%
+  summarise(avg_age = round(mean(age_at_prize, na.rm = TRUE), 1), .groups = "drop") %>%
+  arrange(avg_age)
+
+cat("\n=== Q2: Average Age at Prize by Category ===\n")
+print(q2)
+```
+
+```{r}
+q3 <- prizes_df %>%
+  filter(!is.na(gender)) %>%
+  group_by(nobelPrizes_category.en, gender) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = gender, values_from = count, values_fill = 0)
+
+cat("\n=== Q3: Gender Breakdown by Category ===\n")
+print(q3)
+```
+
+```{r}
+q4 <- prizes_df %>%
+  filter(!is.na(gender)) %>%
+  group_by(nobelPrizes_category.en) %>%
+  summarise(
+    total      = n(),
+    female     = sum(gender == "female"),
+    pct_female = round(100 * female / total, 1),
+    .groups    = "drop"
+  ) %>%
+  arrange(desc(pct_female))
+
+cat("\n=== Q4: % Female Laureates by Category ===\n")
+print(q4)
+```
+
+
