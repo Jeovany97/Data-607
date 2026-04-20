@@ -1,0 +1,75 @@
+---
+title: "Homework 7"
+format: html
+editor: visual
+---
+
+Reproduce the book examples
+
+```{r}
+# Load necessary libraries
+library(tidytext)
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+
+# Reproduction of Chapter 2: Sentiment analysis of Jane Austen's novels
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(text, 
+                                regex("^chapter [\\divxlc]", ignore_case = TRUE)))
+  ) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+# Using the Bing lexicon to find sentiment trajectory
+jane_austen_sentiment <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book, index = linenumber %/% 80, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+# Visualizing the results
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x") +
+  labs(title = "Sentiment in Jane Austen's Novels",
+       caption = "Source: Silge & Robinson, Text Mining with R")
+```
+
+pulling from the gutenbergr to download The War of the Worlds and The Time Machine
+
+```{R}
+library(gutenbergr)
+```
+
+```{R}
+#Downloading 'The War of the Worlds' (36) and 'The Time Machine' (35)
+wells_books <- gutenberg_download(c(35, 36), meta_fields = "title")
+
+tidy_wells <- wells_books %>%
+  group_by(title) %>%
+  mutate(linenumber = row_number()) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+#Getting a lexicon Loughran-McDonald
+loughran <- get_sentiments("loughran")
+
+wells_loughran <- tidy_wells %>%
+  inner_join(loughran) %>%
+  count(title, index = linenumber %/% 80, sentiment)
+
+ggplot(wells_loughran, aes(index, n, fill = sentiment)) +
+  geom_col() +
+  facet_wrap(~title, scales = "free_x") +
+  labs(title = "Sentiment Complexity in H.G. Wells (Loughran Lexicon)",
+       y = "Word Count",
+       x = "Narrative Progress (80-line chunks)")
+```
+
+
