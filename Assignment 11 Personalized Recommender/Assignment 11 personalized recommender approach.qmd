@@ -1,0 +1,9 @@
+---
+title: "Assignment 11 Personalized Recommender Approach"
+format: html
+editor: visual
+---
+
+## Approach
+
+To transition from a nonpersonalized baseline to a personalized system, I will implement a User-to-User Filtering model to use shared preferences within the survey data. My plan is to use K nearest neighbors. I will calculating the similarity scores between users using Cosine Similarity, then generating predicted ratings for unrated items based on a weighted average of their "neighbors'" opinions. To measure accuracy, I will employ a train test split(planning on 50/50 spilt but might change that as program delevops) and calculate the Root Mean Square Error (RMSE) to see how closely our predictions hit the actual survey marks.
