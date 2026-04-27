@@ -1,0 +1,66 @@
+---
+title: "Assignment 11 Personalized Recommender Approach"
+format: html
+editor: visual
+---
+
+CodeBase
+
+```{r}
+library(recommenderlab)
+library(readxl)
+```
+
+Data setup 
+```{r}
+raw_data <- read_excel("MovieRatings.xlsx")
+movie_matrix <- as.matrix(raw_data[, -1]) 
+rownames(movie_matrix) <- raw_data$Critic
+
+#Converting to better format for recommending
+rating_matrix <- as(movie_matrix, "realRatingMatrix")
+
+```
+
+Creating a user base collaborative filtering model that uses cosine similarity 
+```{r}
+#Creating the recommender model
+rec_model <- Recommender(rating_matrix, 
+  method = "UBCF", 
+  parameter = list(method = "Cosine", nn = 3))
+
+#Generating prediction rating 
+recom_predictions <- predict(rec_model, rating_matrix, type = "ratings")
+
+#Generating Top 3 Recommendation
+recom_list <- predict(rec_model, rating_matrix, n = 3)
+
+```
+
+#Evalutating the model
+```{r}
+eval_sets <- evaluationScheme(rating_matrix, 
+                              method = "split", 
+                              train = 0.8, 
+                              given = 1, #Number of ratings to hold for test
+                              goodRating = 4)
+
+#Train model on training set
+eval_recommender <- Recommender(getData(eval_sets, "train"), "UBCF")
+
+#Prediction on the test set
+eval_prediction <- predict(eval_recommender, getData(eval_sets, "known"), type = "ratings")
+
+# Calculate the error metrics
+accuracy_results <- calcPredictionAccuracy(eval_prediction, getData(eval_sets, "unknown"))
+print(accuracy_results)
+
+```
+
+Viewing personalized predictions for users
+```{r}
+as(recom_list, "list")
+
+predicted_mat <- as(recom_predictions, "matrix")
+round(predicted_mat, 2)
+```
